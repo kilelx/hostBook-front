@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { MainFormSchema, MainFormValuesType } from "./schemas/MainFormSchema";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { BookData } from "@/types/BookData";
 
 export function SimpleForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -16,6 +18,8 @@ export function SimpleForm() {
     type: string;
     size: string;
   } | null>(null);
+  const [bookData, setBookData] = useState<BookData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const {
@@ -34,17 +38,19 @@ export function SimpleForm() {
 
 
   const onSubmit = (data: MainFormValuesType) => {
-
+    setIsLoading(true);
     const hasUrl = data.url && data.url.trim() !== "";
     const hasFile = data.file && data.file.length > 0;
 
     if (!hasUrl && !hasFile) {
       console.error("Erreur: Aucun champ n'est rempli");
+      setIsLoading(false);
       return;
     }
 
     if (hasUrl && hasFile) {
       console.error("Erreur: Les deux champs sont remplis");
+      setIsLoading(false);
       return;
     }
 
@@ -52,9 +58,9 @@ export function SimpleForm() {
       const file = data.file[0];
       const fileSizeInKB = file.size / 1024;
       const fileSizeStr =
-        fileSizeInKB < 1024
-          ? `${fileSizeInKB.toFixed(2)} KB`
-          : `${(fileSizeInKB / 1024).toFixed(2)} MB`;
+          fileSizeInKB < 1024
+              ? `${fileSizeInKB.toFixed(2)} KB`
+              : `${(fileSizeInKB / 1024).toFixed(2)} MB`;
 
       console.log("Fichier PDF soumis:", {
         name: file.name,
@@ -68,12 +74,33 @@ export function SimpleForm() {
         return;
       }
 
-      // Vous pourriez ici envoyer le fichier à un serveur ou le traiter
-      // Par exemple : const formData = new FormData(); formData.append('file', file);
-    }
+      // Création d'un form-data et ajout du fichier
+      const formData = new FormData();
+      formData.append('file', file);
 
-    console.log("Formulaire valide, soumission réussie!");
-    setIsSubmitted(true);
+      // Envoi du fichier en POST via le proxy Next.js
+      axios.post('/api/stay/pdf', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+          .then(response => {
+            console.log("Réponse du serveur:", response.data);
+            // Stocker les données reçues
+            setBookData(response.data);
+            console.log("Formulaire valide, soumission réussie!");
+            setIsSubmitted(true);
+          })
+          .catch(error => {
+            console.error("Erreur lors de l'envoi du fichier:", error);
+            setIsLoading(false);
+          });
+    } else if (hasUrl) {
+      // Traitement de l'URL (à implémenter si nécessaire)
+      console.log("Formulaire valide, soumission réussie!");
+      setIsSubmitted(true);
+      setIsLoading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
@@ -111,17 +138,19 @@ export function SimpleForm() {
   };
 
   useEffect(() => {
-    if(isSubmitted) {
+    if(isSubmitted && bookData) {
+      // Stocker les données dans le localStorage pour les récupérer sur la page suivante
+      localStorage.setItem('bookData', JSON.stringify(bookData));
       router.push('/owner-edit-book');
     }
-  }, [isSubmitted])
+  }, [isSubmitted, bookData, router])
 
   return (
     <div className="w-full max-w-md mx-auto p-6 space-y-4 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-center">
         Pour commencer, quelques informations
       </h2>
-      
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="url" className="text-sm font-medium">
@@ -172,9 +201,9 @@ export function SimpleForm() {
           <button
             type="submit"
             className="w-full py-2 px-4 my-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
-            disabled={isSubmitting || Object.keys(errors).length > 0}
+            disabled={isSubmitting || isLoading || Object.keys(errors).length > 0}
           >
-            Je crée mon livret
+            {isLoading ? 'Chargement...' : 'Je crée mon livret'}
           </button>
 
           <Link

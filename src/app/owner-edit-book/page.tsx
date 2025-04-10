@@ -1,8 +1,27 @@
 'use client';
 
 import { BookEditForm } from '@/components/BookEditForm';
+import { useEffect, useState } from 'react';
+import { BookData } from '@/types/BookData';
 
 function EditFormBook() {
+  const [bookData, setBookData] = useState<BookData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Récupérer les données du localStorage
+    const storedData = localStorage.getItem('bookData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setBookData(parsedData);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données:', error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
   return (
     <section className="min-h-screen w-full bg-background py-8">
       <div className="container mx-auto px-4">
@@ -17,13 +36,18 @@ function EditFormBook() {
             <p className="text-center">N'hésitez pas à relire les informations, et à les modifier si nécessaire.</p>
           </div>
 
-          <BookEditForm
-            onSubmit={(data) => {
-              console.log('Données du formulaire soumises:', data);
-              // Ici, vous pourriez envoyer les données à votre API
-              alert('Modifications enregistrées avec succès!');
-            }}
-          />
+          {isLoading ? (
+            <div className="text-center py-8">Chargement des données...</div>
+          ) : (
+            <BookEditForm
+              initialData={bookData || undefined}
+              onSubmit={(data) => {
+                console.log('Données du formulaire soumises:', data);
+                // Ici, vous pourriez envoyer les données à votre API
+                alert('Modifications enregistrées avec succès!');
+              }}
+            />
+          )}
         </div>
       </div>
     </section>
