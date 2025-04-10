@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { MainFormSchema, MainFormValuesType } from "./schemas/MainFormSchema";
+import { useRouter } from "next/navigation";
 
 export function SimpleForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -15,6 +16,7 @@ export function SimpleForm() {
     type: string;
     size: string;
   } | null>(null);
+  const router = useRouter();
 
   const {
     register,
@@ -27,22 +29,15 @@ export function SimpleForm() {
     defaultValues: {
       url: "",
     },
-    mode: "onChange", // Valider à chaque changement
+    mode: "onChange",
   });
 
-  // Observer les valeurs du formulaire pour le débogage
-  const watchedValues = watch();
 
   const onSubmit = (data: MainFormValuesType) => {
-    console.log("Données du formulaire:", data);
 
-    // Vérification manuelle des champs
     const hasUrl = data.url && data.url.trim() !== "";
     const hasFile = data.file && data.file.length > 0;
 
-    console.log("Vérification manuelle - hasUrl:", hasUrl, "hasFile:", hasFile);
-
-    // Vérifier qu'un seul champ est rempli
     if (!hasUrl && !hasFile) {
       console.error("Erreur: Aucun champ n'est rempli");
       return;
@@ -68,7 +63,6 @@ export function SimpleForm() {
         lastModified: new Date(file.lastModified).toLocaleString(),
       });
 
-      // Vérifier que le fichier est un PDF
       if (file.type !== "application/pdf") {
         console.error("Erreur: Le fichier n'est pas un PDF");
         return;
@@ -83,40 +77,26 @@ export function SimpleForm() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
-    console.log("handleFileChange appelé");
-    console.log("Event:", e);
 
     // Vérifier si nous avons un événement ou une valeur directe de react-hook-form
     const files = e.target?.files || e;
-
-    console.log("Files détectés:", files);
 
     if (files && files.length > 0) {
       const file = files[0];
       setFileName(file.name);
 
-      // Convertir la taille du fichier en format lisible
       const fileSizeInKB = file.size / 1024;
       const fileSizeStr =
         fileSizeInKB < 1024
           ? `${fileSizeInKB.toFixed(2)} KB`
           : `${(fileSizeInKB / 1024).toFixed(2)} MB`;
 
-      // Stocker les informations du fichier
       setFileInfo({
         name: file.name,
         type: file.type,
         size: fileSizeStr,
       });
 
-      console.log("Fichier importé:", {
-        name: file.name,
-        type: file.type,
-        size: fileSizeStr,
-        lastModified: new Date(file.lastModified).toLocaleString(),
-      });
-
-      // Mettre à jour explicitement la valeur du champ file dans le formulaire
       setValue("file", files);
 
       // Forcer la mise à jour du formulaire
@@ -130,17 +110,18 @@ export function SimpleForm() {
     }
   };
 
+  useEffect(() => {
+    if(isSubmitted) {
+      router.push('/owner-edit-book');
+    }
+  }, [isSubmitted])
+
   return (
     <div className="w-full max-w-md mx-auto p-6 space-y-4 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-center">
         Pour commencer, quelques informations
       </h2>
-
-      {isSubmitted ? (
-        <div className="p-4 bg-success/20 text-success rounded-md">
-          <p className="text-center">Formulaire soumis avec succès!</p>
-        </div>
-      ) : (
+      
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="url" className="text-sm font-medium">
@@ -203,7 +184,7 @@ export function SimpleForm() {
             Je n'ai aucune de ces solutions
           </Link>
         </form>
-      )}
+
     </div>
   );
 }
