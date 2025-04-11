@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BookData } from '@/types/BookData';
 import { BookFormSchema, BookFormValuesType } from './schemas/BookFormSchema';
 import InputForm from './InputForm';
-import { PlusCircle, Palmtree, Plane, Home, MapPin } from 'lucide-react';
+import { PlusCircle, Palmtree, Plane, Home, MapPin, ArrowLeft } from 'lucide-react';
 import Recommendation from './Recommendation';
 import { motion } from 'framer-motion';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useRouter } from 'next/navigation';
+import isEqual from 'lodash.isequal';
 
 const convertBookDataToFormValues = (data: BookData | undefined): BookFormValuesType => {
   return {
@@ -55,13 +57,17 @@ interface BookEditFormProps {
 }
 
 export function BookEditForm({ initialData, onSubmit }: BookEditFormProps) {
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [isModified, setIsModified] = useState(false);
+  const [originalValues, setOriginalValues] = useState<string>('');
 
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    watch,
+    formState: { errors, isDirty },
   } = useForm<BookFormValuesType>({
     resolver: zodResolver(BookFormSchema) as any,
     defaultValues: convertBookDataToFormValues(initialData),
@@ -72,21 +78,43 @@ export function BookEditForm({ initialData, onSubmit }: BookEditFormProps) {
     name: "recommendations",
   });
 
-  const handleFormSubmit = (data: BookFormValuesType) => {
-    setIsSaving(true);
+  const formValues = watch();
 
+  useEffect(() => {
+    const newOriginalValues = JSON.stringify(convertBookDataToFormValues(initialData));
+    setOriginalValues(newOriginalValues);
+  }, [initialData]);
+
+  useEffect(() => {
+    if (originalValues && formValues) {
+      try {
+        const originalObj = JSON.parse(originalValues);
+        const modified = !isEqual(formValues, originalObj);
+        setIsModified(modified);
+      } catch (error) {
+        console.error('Erreur lors de la comparaison des objets:', error);
+      }
+    }
+  }, [formValues, originalValues]);
+
+  const handleFormSubmit = (data: BookFormValuesType) => {
+    if (!isModified) {
+      router.push('/');
+      return;
+    }
+
+    setIsSaving(true);
     const bookData = convertFormValuesToBookData(data);
 
     if (onSubmit) {
       onSubmit(bookData);
     }
 
-    console.log('Données soumises:', bookData);
-
     setTimeout(() => {
       setIsSaving(false);
     }, 1000);
   };
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -323,9 +351,10 @@ export function BookEditForm({ initialData, onSubmit }: BookEditFormProps) {
           whileTap={{ scale: 0.95 }}
           type="submit"
           disabled={isSaving}
-          className="px-6 py-3 bg-gradient-to-r from-[#f04c23] to-pink-500 text-white rounded-md hover:from-[#f04c23] hover:to-pink-400 transition-all shadow-md disabled:opacity-50 font-medium"
+          className={`px-6 py-3 text-white rounded-md transition-all shadow-md disabled:opacity-50 font-medium flex items-center ${isModified ? 'bg-gradient-to-r from-[#f04c23] to-pink-500 hover:from-[#f04c23] hover:to-pink-400' : 'bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600'}`}
         >
-          {isSaving ? 'Création en cours...' : 'Créer mon livret'}
+          {!isModified && <ArrowLeft size={18} className="mr-2" />}
+          {isSaving ? 'Enregistrement en cours...' : isModified ? 'Enregistrer les modifications' : 'Retour à l\'accueil'}
         </motion.button>
       </motion.div>
     </motion.form>

@@ -5,11 +5,10 @@ import { useEffect, useState } from 'react';
 import { BookData } from '@/types/BookData';
 import { motion } from 'framer-motion';
 import { Palmtree, Book, Sun } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import {PasswordDisplay} from "../../../components/PasswordDisplay";
+import axios from 'axios';
 
 function EditFormBook() {
-  const router = useRouter();
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,12 +77,7 @@ function EditFormBook() {
             >
               Voici ce que nous avons pu générer pour votre livret.
             </motion.p>
-            <motion.p
-              variants={itemVariants}
-              className="text-center text-gray-600"
-            >
-              N'hésitez pas à relire les informations, et à les modifier si nécessaire.
-            </motion.p>
+
           </motion.div>
 
           {isLoading ? (
@@ -99,22 +93,68 @@ function EditFormBook() {
             </motion.div>
           ) : (
             <motion.div variants={itemVariants} className="space-y-8">
-              {/* Affichage du mot de passe */}
               {bookData?.accessPassword && bookData?.id && (
                 <motion.div variants={itemVariants}>
                   <PasswordDisplay password={bookData.accessPassword} bookId={bookData.id} />
                 </motion.div>
               )}
-
+              <motion.p
+                  variants={itemVariants}
+                  className="text-center text-gray-600"
+              >
+                N'hésitez pas à relire les informations, et à les modifier si nécessaire.
+              </motion.p>
               <BookEditForm
                 initialData={bookData || undefined}
-                onSubmit={(data) => {
-                  console.log('Données du formulaire soumises:', data);
-                  alert('Modifications enregistrées avec succès!');
+                onSubmit={async (data) => {
+                  try {
+                    if (data.id) {
+                      const prismaData = {
+                        arrivalTime: data.arrivalTime,
+                        accessInstructions: data.accessInstructions,
+                        arrivalAdditionalInfo: data.arrivalAdditionalInfo,
+                        departureTime: data.departureTime,
+                        exitInstructions: data.exitInstructions,
+                        departureAdditionalInfo: data.departureAdditionalInfo,
+                        wifiName: data.wifiName,
+                        wifiPassword: data.wifiPassword,
+                        houseRules: data.houseRules,
+                        ownerContact: data.ownerContact,
+                        ownerName: data.ownerName,
+                        generalInfo: data.generalInfo,
+                        recommendations: {
+                          deleteMany: {},
+                          create: data.recommendations.map(rec => ({
+                            name: rec.name,
+                            address: rec.address || '',
+                            description: rec.description || '',
+                            type: rec.type
+                          }))
+                        }
+                      };
+
+                      const response = await axios.put(`http://localhost:3001/api/stay/${data.id}`, prismaData);
+
+                      if (response.status === 200) {
+                        setBookData(response.data);
+                        localStorage.setItem('bookData', JSON.stringify(response.data));
+                        alert('Modifications enregistrées avec succès!');
+                        window.location.reload();
+                      }
+                    } else {
+                      setBookData(data);
+                      localStorage.setItem('bookData', JSON.stringify(data));
+                      alert('Modifications enregistrées avec succès!');
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('Erreur lors de la mise à jour des données:', error);
+                    alert('Une erreur est survenue lors de la mise à jour des données.');
+                  }
                 }}
               />
             </motion.div>
-          )}
+              )}
         </motion.div>
       </div>
 
