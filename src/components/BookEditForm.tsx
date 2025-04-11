@@ -328,7 +328,7 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
         <button
           type="submit"
           disabled={isSaving}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
         >
           {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
         </button>
