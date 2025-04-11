@@ -81,8 +81,6 @@ export function BookEditForm({ initialData, onSubmit }: BookEditFormProps) {
       onSubmit(bookData);
     }
 
-    console.log('Données soumises:', bookData);
-
     setTimeout(() => {
       setIsSaving(false);
     }, 1000);

@@ -35,6 +35,9 @@ export interface BookData {
   ownerName: string;
   generalInfo: string;
 
+  // Sécurité
+  accessPassword?: string;
+
   // Recommandations
   recommendations: Recommendation[];
 }
