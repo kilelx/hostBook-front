@@ -128,14 +128,13 @@ function ClientBook() {
 
   return (
     <section className="min-h-screen min-w-screen bg-[#222222] text-black flex justify-center items-center">
-      <div className="mx-auto px-4 w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] rounded-lg bg-white overflow-auto">
+      <div className="mx-auto px-4 w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] rounded-lg bg-gradient-to-b from-orange-50 to-amber-100 overflow-auto">
         <div className="w-full max-w-4xl mx-auto lg:p-6 space-y-8">
-          <h2 className="text-3xl font-bold text-center bg-white/80 p-4">
+          <h2 className="text-3xl font-bold text-center p-4">
             Bienvenue chez {bookData?.ownerName || 'notre hébergement'}
           </h2>
 
           <Accordion type="single" collapsible className="w-full space-y-6">
-            {/* Informations d'arrivée */}
             <AccordionItem value="arrival" className="border-none">
               <div className="bg-[#fee4cb] rounded-xl shadow-md overflow-hidden">
                 <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-orange-100 transition-all">
@@ -173,7 +172,6 @@ function ClientBook() {
               </div>
             </AccordionItem>
 
-            {/* Informations de départ */}
             <AccordionItem value="departure" className="border-none">
               <div className="bg-[#f8e1ee] rounded-xl shadow-md overflow-hidden text-black">
                 <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-pink-100 transition-all">
@@ -211,7 +209,6 @@ function ClientBook() {
               </div>
             </AccordionItem>
 
-            {/* Hébergement */}
             <AccordionItem value="accommodation" className="border-none">
               <div className="bg-[#e9f5c9] rounded-xl shadow-md overflow-hidden text-black">
                 <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-lime-100 transition-all">
@@ -224,7 +221,6 @@ function ClientBook() {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="bg-white/10 p-6 space-y-4">
-                    {/* WiFi */}
                     {(bookData?.wifiName || bookData?.wifiPassword) && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {bookData?.wifiName && (
@@ -246,7 +242,6 @@ function ClientBook() {
                       </div>
                     )}
 
-                    {/* Règles de la maison */}
                     {bookData?.houseRules && (
                       <div className="p-4 bg-white/50 rounded-md">
                         <p className="font-medium mb-2">Règles de la maison</p>
@@ -259,7 +254,6 @@ function ClientBook() {
                       </div>
                     )}
 
-                    {/* Contact */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {bookData?.ownerContact && (
                         <div className="p-4 bg-white/50 rounded-md">
@@ -283,7 +277,6 @@ function ClientBook() {
               </div>
             </AccordionItem>
 
-            {/* Recommandations */}
             {bookData?.recommendations && bookData.recommendations.length > 0 && (
               <AccordionItem value="recommendations" className="border-none">
                 <div className="bg-[#d8f3f6] rounded-xl shadow-md overflow-hidden text-black">
