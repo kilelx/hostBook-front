@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BookData } from '@/types/BookData';
 import { useParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
+import { Plane, Home, MapPin, Phone, Info, Wifi } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 function ClientBook() {
   const params = useParams();
@@ -82,7 +84,7 @@ function ClientBook() {
   if (!bookData && !isLoading) {
     if (isPasswordRequired) {
       return (
-        <section className="h-screen w-screen bg-background flex items-center justify-center">
+        <section className="h-screen w-screen bg-background flex items-center justify-center px-4">
           <div className="w-full max-w-md mx-auto p-8 space-y-6 bg-card rounded-xl shadow-lg border border-muted">
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center mb-4">
@@ -125,118 +127,194 @@ function ClientBook() {
   }
 
   return (
-    <section className="min-h-screen w-screen bg-background py-8">
-      <div className="container mx-auto px-4">
-        <div className="w-full max-w-4xl mx-auto p-6 space-y-6 bg-card rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-center">
-            Bienvenue chez {bookData?.ownerName}
+    <section className="min-h-screen min-w-screen bg-[#222222] text-black flex justify-center items-center">
+      <div className="mx-auto px-4 w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] rounded-lg bg-white overflow-auto">
+        <div className="w-full max-w-4xl mx-auto lg:p-6 space-y-8">
+          <h2 className="text-3xl font-bold text-center bg-white/80 p-4">
+            Bienvenue chez {bookData?.ownerName || 'notre hébergement'}
           </h2>
 
-          {/* Informations d'arrivée */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Arrivée</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Heure d'arrivée</p>
-                <p>{bookData?.arrivalTime}</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Instructions d'accès</p>
-                <p>{bookData?.accessInstructions}</p>
-              </div>
-            </div>
-            {bookData?.arrivalAdditionalInfo && (
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Informations supplémentaires</p>
-                <p>{bookData?.arrivalAdditionalInfo}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Informations de départ */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Départ</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Heure de départ</p>
-                <p>{bookData?.departureTime}</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Instructions de sortie</p>
-                <p>{bookData?.exitInstructions}</p>
-              </div>
-            </div>
-            {bookData?.departureAdditionalInfo && (
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Informations supplémentaires</p>
-                <p>{bookData?.departureAdditionalInfo}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Informations WiFi */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">WiFi</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Nom du réseau</p>
-                <p>{bookData?.wifiName}</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p className="font-medium">Mot de passe</p>
-                <p>{bookData?.wifiPassword}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Règles de la maison */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Règles de la maison</h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              {bookData?.houseRules.split('\n').map((rule, index) => (
-                <div key={index} className="flex items-start mb-2">
-                  <span className="mr-2">•</span>
-                  <p>{rule}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recommandations */}
-          {bookData?.recommendations && bookData?.recommendations.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Recommandations</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bookData.recommendations.map((rec) => (
-                  <div key={rec.id} className="p-4 bg-muted/20 rounded-md">
-                    <p className="font-medium">{rec.name}</p>
-                    <p className="text-sm text-muted-foreground">{rec.type}</p>
-                    {rec.address && <p className="text-sm">{rec.address}</p>}
-                    {rec.description && <p className="mt-2">{rec.description}</p>}
+          <Accordion type="single" collapsible className="w-full space-y-6">
+            {/* Informations d'arrivée */}
+            <AccordionItem value="arrival" className="border-none">
+              <div className="bg-[#fee4cb] rounded-xl shadow-md overflow-hidden">
+                <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-orange-100 transition-all">
+                  <span className="text-xl font-semibold flex items-center gap-3">
+                    <div className="bg-orange-200 p-2 rounded-full">
+                      <Plane className="h-6 w-6 text-orange-600" />
+                    </div>
+                    Arrivée
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {bookData?.arrivalTime && (
+                        <div className="p-4 bg-orange-50 rounded-md">
+                          <p className="font-medium">Heure d'arrivée</p>
+                          <p>{bookData.arrivalTime}</p>
+                        </div>
+                      )}
+                      {bookData?.accessInstructions && (
+                        <div className="p-4 bg-orange-50 rounded-md">
+                          <p className="font-medium">Instructions d'accès</p>
+                          <p>{bookData.accessInstructions}</p>
+                        </div>
+                      )}
+                    </div>
+                    {bookData?.arrivalAdditionalInfo && (
+                      <div className="p-4 bg-orange-50 rounded-md">
+                        <p className="font-medium">Informations supplémentaires</p>
+                        <p>{bookData.arrivalAdditionalInfo}</p>
+                      </div>
+                    )}
                   </div>
-                ))}
+                </AccordionContent>
               </div>
-            </div>
-          )}
+            </AccordionItem>
 
-          {/* Contact */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Contact</h3>
-            <div className="p-4 bg-muted/20 rounded-md">
-              <p className="font-medium">{bookData?.ownerName}</p>
-              <p>{bookData?.ownerContact}</p>
-            </div>
-          </div>
-
-          {/* Informations générales */}
-          {bookData?.generalInfo && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Informations générales</h3>
-              <div className="p-4 bg-muted/20 rounded-md">
-                <p>{bookData?.generalInfo}</p>
+            {/* Informations de départ */}
+            <AccordionItem value="departure" className="border-none">
+              <div className="bg-[#f8e1ee] rounded-xl shadow-md overflow-hidden text-black">
+                <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-pink-100 transition-all">
+                  <span className="text-xl font-semibold flex items-center gap-3">
+                    <div className="bg-pink-200 p-2 rounded-full">
+                      <Plane className="h-6 w-6 rotate-180 text-pink-600" />
+                    </div>
+                    Départ
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {bookData?.departureTime && (
+                        <div className="p-4 bg-pink-50 rounded-md">
+                          <p className="font-medium">Heure de départ</p>
+                          <p>{bookData.departureTime}</p>
+                        </div>
+                      )}
+                      {bookData?.exitInstructions && (
+                        <div className="p-4 bg-pink-50 rounded-md">
+                          <p className="font-medium">Instructions de sortie</p>
+                          <p>{bookData.exitInstructions}</p>
+                        </div>
+                      )}
+                    </div>
+                    {bookData?.departureAdditionalInfo && (
+                      <div className="p-4 bg-pink-50 rounded-md">
+                        <p className="font-medium">Informations supplémentaires</p>
+                        <p>{bookData.departureAdditionalInfo}</p>
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
               </div>
-            </div>
-          )}
+            </AccordionItem>
+
+            {/* Hébergement */}
+            <AccordionItem value="accommodation" className="border-none">
+              <div className="bg-[#e9f5c9] rounded-xl shadow-md overflow-hidden text-black">
+                <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-lime-100 transition-all">
+                  <span className="text-xl font-semibold flex items-center gap-3">
+                    <div className="bg-lime-200 p-2 rounded-full">
+                      <Home className="h-6 w-6 text-lime-600" />
+                    </div>
+                    Hébergement
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="bg-white/10 p-6 space-y-4">
+                    {/* WiFi */}
+                    {(bookData?.wifiName || bookData?.wifiPassword) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {bookData?.wifiName && (
+                          <div className="p-4 bg-white/50 rounded-md">
+                            <p className="font-medium flex items-center gap-2">
+                              <Wifi className="h-4 w-4" /> Nom du réseau
+                            </p>
+                            <p>{bookData.wifiName}</p>
+                          </div>
+                        )}
+                        {bookData?.wifiPassword && (
+                          <div className="p-4 bg-white/50 rounded-md">
+                            <p className="font-medium flex items-center gap-2">
+                              <Wifi className="h-4 w-4" /> Mot de passe
+                            </p>
+                            <p>{bookData.wifiPassword}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Règles de la maison */}
+                    {bookData?.houseRules && (
+                      <div className="p-4 bg-white/50 rounded-md">
+                        <p className="font-medium mb-2">Règles de la maison</p>
+                        {bookData.houseRules.split('\n').map((rule, index) => (
+                          <div key={index} className="flex items-start mb-2">
+                            <span className="mr-2">•</span>
+                            <p>{rule}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Contact */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {bookData?.ownerContact && (
+                        <div className="p-4 bg-white/50 rounded-md">
+                          <p className="font-medium flex items-center gap-2">
+                            <Phone className="h-4 w-4" /> Contact
+                          </p>
+                          <p>{bookData.ownerContact}</p>
+                        </div>
+                      )}
+                      {bookData?.generalInfo && (
+                        <div className="p-4 bg-white/50 rounded-md">
+                          <p className="font-medium flex items-center gap-2">
+                            <Info className="h-4 w-4" /> Informations générales
+                          </p>
+                          <p>{bookData.generalInfo}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </div>
+            </AccordionItem>
+
+            {/* Recommandations */}
+            {bookData?.recommendations && bookData.recommendations.length > 0 && (
+              <AccordionItem value="recommendations" className="border-none">
+                <div className="bg-[#d8f3f6] rounded-xl shadow-md overflow-hidden text-black">
+                  <AccordionTrigger className="px-6 py-5 hover:no-underline hover:bg-cyan-100 transition-all">
+                    <span className="text-xl font-semibold flex items-center gap-3">
+                      <div className="bg-cyan-200 p-2 rounded-full">
+                        <MapPin className="h-6 w-6 text-cyan-600" />
+                      </div>
+                      Recommandations
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="bg-white/10 p-6 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {bookData.recommendations.map((rec) => (
+                          <div key={rec.id} className="p-4 bg-white/50 rounded-md">
+                            <div className="flex">
+                            <p className="font-medium">{rec.name} -</p>
+                            <p className="opacity-50 ml-1 font-semibold">{rec.type === "RESTAURANT" ? "Restaurant" : rec.type === "ACTIVITY" ? "Activité" : rec.type === "BAR" ? "Bar" : rec.type === "TOURISM" ? "Tourisme" : rec.type === "GROCERY" ? "Épicerie" : "Autre"}</p>
+                            </div>
+                            {rec.address && <p className="text-sm mt-1">{rec.address}</p>}
+                            {rec.description && <p className="mt-2">{rec.description}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </div>
+              </AccordionItem>
+            )}
+          </Accordion>
         </div>
       </div>
     </section>
