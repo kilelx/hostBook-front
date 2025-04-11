@@ -3,10 +3,13 @@
 import { BookEditForm } from '@/components/BookEditForm';
 import { useEffect, useState } from 'react';
 import { BookData } from '@/types/BookData';
+import { useRouter } from 'next/navigation';
 
 function EditFormBook() {
+  const router = useRouter();
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // Récupérer les données du localStorage
@@ -41,10 +44,36 @@ function EditFormBook() {
           ) : (
             <BookEditForm
               initialData={bookData || undefined}
-              onSubmit={(data) => {
-                console.log('Données du formulaire soumises:', data);
-                // Ici, vous pourriez envoyer les données à votre API
-                alert('Modifications enregistrées avec succès!');
+              onSubmit={async (data) => {
+                try {
+                  setIsSaving(true);
+                  console.log('Données du formulaire soumises:', data);
+
+                  // Envoyer les données à l'API
+                  const response = await fetch('http://localhost:3001/api/stay', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
+
+                  const result = await response.json();
+                  console.log('Réponse de l\'API:', result);
+
+                  // Rediriger vers la page du livret avec l'ID retourné par l'API
+                  router.push(`/welcome-book/${result.id}`);
+                } catch (error) {
+                  console.error('Erreur lors de l\'enregistrement des données:', error);
+                  alert('Une erreur est survenue lors de l\'enregistrement des données. Veuillez réessayer.');
+                } finally {
+                  setIsSaving(false);
+                }
               }}
             />
           )}
