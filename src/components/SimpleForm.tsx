@@ -9,6 +9,8 @@ import { MainFormSchema, MainFormValuesType } from "./schemas/MainFormSchema";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BookData } from "@/types/BookData";
+import { motion } from "framer-motion";
+import { FileUp, Link2, Palmtree, Sun, Upload } from "lucide-react";
 
 export function SimpleForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -21,6 +23,30 @@ export function SimpleForm() {
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Définir les animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
 
   const {
     register,
@@ -39,17 +65,10 @@ export function SimpleForm() {
 
   const onSubmit = (data: MainFormValuesType) => {
     setIsLoading(true);
-    const hasUrl = data.url && data.url.trim() !== "";
     const hasFile = data.file && data.file.length > 0;
 
-    if (!hasUrl && !hasFile) {
-      console.error("Erreur: Aucun champ n'est rempli");
-      setIsLoading(false);
-      return;
-    }
-
-    if (hasUrl && hasFile) {
-      console.error("Erreur: Les deux champs sont remplis");
+    if (!hasFile) {
+      console.error("Erreur: Aucun fichier n'est sélectionné");
       setIsLoading(false);
       return;
     }
@@ -95,11 +114,6 @@ export function SimpleForm() {
             console.error("Erreur lors de l'envoi du fichier:", error);
             setIsLoading(false);
           });
-    } else if (hasUrl) {
-      // Traitement de l'URL (à implémenter si nécessaire)
-      console.log("Formulaire valide, soumission réussie!");
-      setIsSubmitted(true);
-      setIsLoading(false);
     }
   };
 
@@ -146,38 +160,65 @@ export function SimpleForm() {
   }, [isSubmitted, bookData, router])
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 space-y-4 bg-card rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center">
-        Pour commencer, quelques informations
-      </h2>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="w-full max-w-md mx-auto p-8 space-y-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl shadow-lg border border-amber-100"
+    >
+      <motion.div variants={itemVariants} className="text-center space-y-2">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Palmtree className="h-7 w-7 text-[#f04c23]" />
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-[#f04c23] to-pink-500 bg-clip-text text-transparent">
+            Créez votre livret d'accueil
+          </h2>
+          <Sun className="h-7 w-7 text-amber-400" />
+        </div>
+        <motion.p variants={itemVariants} className="text-gray-600">
+          Pour commencer, importez votre livret existant ou indiquez l'URL de votre logement
+        </motion.p>
+      </motion.div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="url" className="text-sm font-medium">
-              Je renseigne l'URL de mon logement
-            </label>
+      <motion.form variants={itemVariants} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <motion.div variants={itemVariants} className="space-y-2 bg-white/80 p-5 rounded-lg shadow-sm border-l-4 border-gray-300 opacity-70">
+            <div className="flex items-center justify-between">
+              <label htmlFor="url" className="flex items-center gap-2 text-sm font-medium text-gray-500">
+                <Link2 className="h-4 w-4 text-gray-400" />
+                Je renseigne l'URL de mon logement
+              </label>
+              <span className="text-xs font-medium px-2 py-1 bg-gray-200 text-gray-600 rounded-full">Prochainement</span>
+            </div>
             <Input
               id="url"
               type="text"
-              placeholder="airbnb.com/mon-super-logement"
-              {...register("url")}
-              className={errors.url ? "border-destructive" : ""}
+              placeholder="Fonctionnalité disponible prochainement"
+              disabled
+              className="bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
             />
-          </div>
+          </motion.div>
 
-          <h3 className="text-xl font-bold text-center">ou</h3>
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-center"
+          >
+            <span className="h-px w-16 bg-amber-200"></span>
+            <h3 className="text-xl font-medium text-center px-4 text-amber-700">ou</h3>
+            <span className="h-px w-16 bg-amber-200"></span>
+          </motion.div>
 
-          <div className="space-y-2">
-            <label htmlFor="file" className="text-sm font-medium">
+          <motion.div variants={itemVariants} className="space-y-3 bg-white/80 p-5 rounded-lg shadow-sm border-l-4 border-pink-400">
+            <label htmlFor="file" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <FileUp className="h-4 w-4 text-pink-500" />
               J'importe mon livret d'accueil (PDF uniquement)
             </label>
             <div className="flex items-center gap-2">
               <label
                 htmlFor="file"
-                className={`flex items-center justify-center w-full h-10 px-4 py-2 text-sm border rounded-md cursor-pointer ${
-                  errors.file ? "border-destructive" : "border-input"
-                } hover:bg-secondary`}
+                className={`flex items-center justify-center w-full h-12 px-4 py-2 text-sm border border-amber-100 rounded-md cursor-pointer ${
+                  errors.file ? "border-destructive" : ""
+                } bg-white/90 hover:bg-pink-50 transition-all`}
               >
+                <Upload className="h-4 w-4 mr-2 text-pink-500" />
                 <span className="truncate">
                   {fileName || "Choisir un fichier PDF"}
                 </span>
@@ -190,30 +231,49 @@ export function SimpleForm() {
                 />
               </label>
             </div>
-          </div>
+            {fileInfo && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-gray-500 bg-amber-50 p-2 rounded border border-amber-100"
+              >
+                <p>Fichier: <span className="font-medium">{fileInfo.name}</span></p>
+                <p>Taille: <span className="font-medium">{fileInfo.size}</span></p>
+              </motion.div>
+            )}
+          </motion.div>
 
-          {errors.url && (
-            <p className="text-sm text-destructive">
-              {errors.url.message?.toString()}
-            </p>
-          )}
+          {/* Les erreurs d'URL sont désactivées car la fonctionnalité n'est pas encore disponible */}
 
-          <button
+          <motion.button
+            variants={itemVariants}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full py-2 px-4 my-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
+            className="w-full py-3 px-4 my-4 bg-gradient-to-r from-[#f04c23] to-pink-500 text-white rounded-md hover:from-[#f04c23] hover:to-pink-400 transition-all shadow-md disabled:opacity-50 font-medium"
             disabled={isSubmitting || isLoading || Object.keys(errors).length > 0}
           >
-            {isLoading ? 'Chargement...' : 'Je crée mon livret'}
-          </button>
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Chargement...
+              </div>
+            ) : 'Je crée mon livret'}
+          </motion.button>
 
-          <Link
-            href={"/customer"}
-            className="block w-full text-center text-sm opacity-75 hover:underline"
-          >
-            Je n'ai aucune de ces solutions
-          </Link>
-        </form>
+          <motion.div variants={itemVariants} className="text-center">
+            <Link
+              href={"/customer"}
+              className="inline-block text-center text-sm text-amber-700 hover:text-[#f04c23] transition-colors hover:underline"
+            >
+              Je n'ai aucune de ces solutions
+            </Link>
+          </motion.div>
+        </motion.form>
 
-    </div>
+    </motion.div>
   );
 }
