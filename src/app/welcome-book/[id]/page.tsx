@@ -3,45 +3,63 @@
 import { useEffect, useState } from 'react';
 import { BookData } from '@/types/BookData';
 import { useParams } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Lock } from 'lucide-react';
 import { Plane, Home, MapPin, Phone, Info, Wifi } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 function ClientBook() {
   const params = useParams();
   const [bookData, setBookData] = useState<BookData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Initialiser à false car aucun chargement n'est en cours au départ
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
+  const [isPasswordRequired, setIsPasswordRequired] = useState(true);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBookData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchBookData = async (pwd: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setPasswordError(null);
 
-        const response = await fetch(`http://localhost:3001/api/stay/${params.id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
+      const response = await fetch(`http://localhost:3001/api/stay/${params.id}?password=${pwd}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
+      });
 
-        const data = await response.json();
-        setBookData(data);
-      } catch (err) {
-        setError('Impossible de récupérer les données du livret. Veuillez réessayer plus tard.');
-      } finally {
+      if (response.status === 401) {
+        setPasswordError('Mot de passe incorrect');
         setIsLoading(false);
+        return;
       }
-    };
 
-    if (params.id) {
-      fetchBookData();
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setBookData(data);
+      setIsPasswordRequired(false);
+    } catch (err) {
+      setError('Impossible de récupérer les données du livret. Veuillez réessayer plus tard.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [params.id]);
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.trim() === '') {
+      setPasswordError('Veuillez entrer un mot de passe');
+      return;
+    }
+    fetchBookData(password);
+  };
+
 
   if (isLoading) {
     return (
@@ -63,7 +81,42 @@ function ClientBook() {
     );
   }
 
-  if (!bookData) {
+  if (!bookData && !isLoading) {
+    if (isPasswordRequired) {
+      return (
+        <section className="h-screen w-screen bg-background flex items-center justify-center">
+          <div className="w-full max-w-md mx-auto p-8 space-y-6 bg-card rounded-xl shadow-lg border border-muted">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center mb-4">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold">Accès protégé</h2>
+              <p className="text-muted-foreground">Veuillez entrer le mot de passe pour accéder au livret d'hébergement</p>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="password"
+                  placeholder="Mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={passwordError ? 'border-destructive' : ''}
+                />
+                {passwordError && (
+                  <p className="text-sm text-destructive">{passwordError}</p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full">
+                Accéder au livret
+              </Button>
+            </form>
+          </div>
+        </section>
+      );
+    }
+
     return (
       <section className="h-screen w-screen bg-background flex items-center justify-center">
         <div className="text-center text-destructive">
@@ -76,9 +129,9 @@ function ClientBook() {
   return (
     <section className="min-h-screen w-screen bg-gradient-to-br from-orange-50 to-amber-50 py-8">
       <div className="container mx-auto px-4">
-        <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-white/90 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold text-center text-amber-800">
-            Bienvenue chez {bookData.ownerName}
+        <div className="w-full max-w-4xl mx-auto p-6 space-y-6 bg-card rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-center">
+            Bienvenue chez {bookData?.ownerName}
           </h2>
 
           <Accordion type="single" collapsible className="w-full space-y-4">
