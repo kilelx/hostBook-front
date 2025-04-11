@@ -1,10 +1,11 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Utensils, Music, Tent, ShoppingBag } from 'lucide-react';
 import React from 'react';
 import InputForm from './InputForm';
 import { RecommendationType } from '@/types/BookData';
 import { Select } from '@/components/ui/select';
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { BookFormValuesType } from './schemas/BookFormSchema';
+import { motion } from 'framer-motion';
 
 interface RecommendationProps {
   field: Record<string, any>;
@@ -15,18 +16,47 @@ interface RecommendationProps {
 }
 
 function Recommendation({ field, index, register, errors, remove }: RecommendationProps) {
+  // Animation pour les recommandations
+  const recommendationVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: 'spring',
+        damping: 12,
+        stiffness: 100
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.9,
+      transition: { duration: 0.2 }
+    }
+  };
+
   return (
-    <div key={field.id} className="p-4 border rounded-md bg-muted/10 relative">
-    <button
+    <motion.div
+      key={field.id}
+      variants={recommendationVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      layout
+      className="p-5 border border-teal-100 rounded-md bg-gradient-to-br from-white to-teal-50/30 shadow-sm relative"
+    >
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
       type="button"
       onClick={() => remove(index)}
-      className="absolute top-2 right-2 text-destructive hover:text-destructive/80 transition-colors cursor-pointer"
+      className="absolute top-3 right-3 text-pink-500 hover:text-pink-700 transition-colors cursor-pointer bg-white rounded-full p-1 shadow-sm"
       aria-label="Supprimer cette recommandation"
     >
       <Trash2 size={18} />
-    </button>
+    </motion.button>
 
-    <div className="space-y-4">
+    <motion.div className="space-y-4" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.1 } }}>
       <InputForm
         label="Nom"
         name={`recommendations.${index}.name`}
@@ -76,8 +106,8 @@ function Recommendation({ field, index, register, errors, remove }: Recommendati
           className={`w-full min-h-[80px] rounded-md border ${errors.recommendations?.[index]?.description ? 'border-destructive' : 'border-input'} bg-transparent px-3 py-2 text-sm shadow-sm`}
         />
       </div>
-    </div>
-  </div>
+    </motion.div>
+  </motion.div>
   )
 }
 

@@ -3,128 +3,50 @@
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BookData, RecommendationType } from '@/types/BookData';
+import { BookData } from '@/types/BookData';
 import { BookFormSchema, BookFormValuesType } from './schemas/BookFormSchema';
 import InputForm from './InputForm';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Palmtree, Plane, Home, MapPin } from 'lucide-react';
 import Recommendation from './Recommendation';
+import { motion } from 'framer-motion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-// Fonction pour convertir les données du backend au format du formulaire
-const convertBookDataToFormValues = (data: BookData): BookFormValuesType => {
+const convertBookDataToFormValues = (data: BookData | undefined): BookFormValuesType => {
   return {
-    id: data.id,
-
-    // Arrivée
-    arrivalTime: data.arrivalTime || '',
-    accessInstructions: data.accessInstructions || '',
-    arrivalAdditionalInfo: data.arrivalAdditionalInfo || '',
-
-    // Départ
-    departureTime: data.departureTime || '',
-    exitInstructions: data.exitInstructions || '',
-    departureAdditionalInfo: data.departureAdditionalInfo || '',
-
-    // Hébergement
-    wifiName: data.wifiName || '',
-    wifiPassword: data.wifiPassword || '',
-    houseRules: data.houseRules || '',
-    ownerContact: data.ownerContact || '',
-    ownerName: data.ownerName || '',
-    generalInfo: data.generalInfo || '',
-
-    // Recommandations
-    recommendations: data.recommendations || [],
+    id: data?.id,
+    arrivalTime: data?.arrivalTime || '',
+    accessInstructions: data?.accessInstructions || '',
+    arrivalAdditionalInfo: data?.arrivalAdditionalInfo || '',
+    departureTime: data?.departureTime || '',
+    exitInstructions: data?.exitInstructions || '',
+    departureAdditionalInfo: data?.departureAdditionalInfo || '',
+    wifiName: data?.wifiName || '',
+    wifiPassword: data?.wifiPassword || '',
+    houseRules: data?.houseRules || '',
+    ownerContact: data?.ownerContact || '',
+    ownerName: data?.ownerName || '',
+    generalInfo: data?.generalInfo || '',
+    recommendations: data?.recommendations || [],
   };
 };
 
-// Fonction pour convertir les valeurs du formulaire au format du backend
 const convertFormValuesToBookData = (values: BookFormValuesType): BookData => {
   return {
     id: values.id,
-
-    // Arrivée
     arrivalTime: values.arrivalTime,
     accessInstructions: values.accessInstructions,
     arrivalAdditionalInfo: values.arrivalAdditionalInfo || '',
-
-    // Départ
     departureTime: values.departureTime,
     exitInstructions: values.exitInstructions,
     departureAdditionalInfo: values.departureAdditionalInfo || '',
-
-    // Hébergement
     wifiName: values.wifiName,
     wifiPassword: values.wifiPassword,
     houseRules: values.houseRules,
     ownerContact: values.ownerContact,
     ownerName: values.ownerName,
     generalInfo: values.generalInfo || '',
-
-    // Recommandations
     recommendations: values.recommendations || [],
   };
-};
-
-// Données d'exemple (à remplacer par les données réelles du backend)
-const sampleBookData: BookData = {
-  id: "sample-id",
-
-  // Arrivée
-  arrivalTime: "15:00",
-  accessInstructions: "La clé se trouve dans la boîte à clés à côté de la porte. Code: 1234",
-  arrivalAdditionalInfo: "Merci de me prévenir 30 minutes avant votre arrivée",
-
-  // Départ
-  departureTime: "11:00",
-  exitInstructions: "Veuillez laisser les clés sur la table de la cuisine et fermer la porte derrière vous",
-  departureAdditionalInfo: "Merci d'éteindre tous les appareils électriques avant de partir",
-
-  // Hébergement
-  wifiName: "VillaBella_WiFi",
-  wifiPassword: "welcome2023",
-  houseRules: "Pas de fête\nPas de fumée à l'intérieur\nAnimaux non autorisés",
-  ownerContact: "+33 6 12 34 56 78",
-  ownerName: "Jean Dupont",
-  generalInfo: "Bienvenue dans notre villa avec vue sur la mer. Profitez de votre séjour!",
-
-  // Recommandations
-  recommendations: [
-    {
-      id: "rec1",
-      name: "Le Bistrot Méditerranéen",
-      address: "10 Rue de la Mer, 06000 Nice",
-      description: "Excellent restaurant avec vue sur la mer",
-      type: RecommendationType.RESTAURANT
-    },
-    {
-      id: "rec2",
-      name: "Plage de la Promenade",
-      address: "Promenade des Anglais, 06000 Nice",
-      description: "Magnifique plage de sable fin",
-      type: RecommendationType.ACTIVITY
-    },
-    {
-      id: "rec3",
-      name: "Bar du Port",
-      address: "5 Quai des Bateaux, 06000 Nice",
-      description: "Bar avec vue sur le port et cocktails délicieux",
-      type: RecommendationType.BAR
-    },
-    {
-      id: "rec4",
-      name: "Musée d'Art Moderne",
-      address: "Place des Arts, 06000 Nice",
-      description: "Musée avec une collection impressionnante d'art contemporain",
-      type: RecommendationType.TOURISM
-    },
-    {
-      id: "rec5",
-      name: "Supermarché Bio",
-      address: "15 Avenue Principale, 06000 Nice",
-      description: "Supermarché proposant des produits bio et locaux",
-      type: RecommendationType.GROCERY
-    }
-  ]
 };
 
 interface BookEditFormProps {
@@ -132,7 +54,7 @@ interface BookEditFormProps {
   onSubmit?: (data: BookData) => void;
 }
 
-export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEditFormProps) {
+export function BookEditForm({ initialData, onSubmit }: BookEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -145,7 +67,6 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
     defaultValues: convertBookDataToFormValues(initialData),
   });
 
-  // Utilisation de useFieldArray pour gérer les recommandations
   const { fields, append, remove } = useFieldArray({
     control,
     name: "recommendations",
@@ -154,27 +75,62 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
   const handleFormSubmit = (data: BookFormValuesType) => {
     setIsSaving(true);
 
-    // Convertir les données du formulaire au format attendu par le backend
     const bookData = convertFormValuesToBookData(data);
 
-    // Appeler la fonction onSubmit si elle est fournie
     if (onSubmit) {
       onSubmit(bookData);
     }
 
     console.log('Données soumises:', bookData);
 
-    // Simuler un délai de sauvegarde
     setTimeout(() => {
       setIsSaving(false);
     }, 1000);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-8">
-      {/* Arrivée */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Arrivée</h2>
+    <motion.form
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      onSubmit={handleSubmit(handleFormSubmit as any)}
+      className="space-y-8 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 p-8 shadow-lg border border-amber-100"
+    >
+      <Accordion type="single" collapsible  className="w-full space-y-4">
+      <AccordionItem value="arrival" className="border-none" >
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 rounded-lg shadow-sm border-l-4 border-[#f04c23] overflow-hidden"
+        >
+          <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-orange-50/50 transition-all">
+            <span className="text-xl font-semibold text-[#f04c23] flex items-center gap-2">
+              <Plane className="h-5 w-5" /> Arrivée
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 space-y-4">
 
         <InputForm
           label="Heure d'arrivée"
@@ -199,11 +155,21 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
           register={register}
           errors={errors}
         />
-      </div>
+          </AccordionContent>
+        </motion.div>
+      </AccordionItem>
 
-      {/* Départ */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Départ</h2>
+      <AccordionItem value="departure" className="border-none">
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 rounded-lg shadow-sm border-l-4 border-pink-400 overflow-hidden"
+        >
+          <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-pink-50/50 transition-all">
+            <span className="text-xl font-semibold text-pink-500 flex items-center gap-2">
+              <Plane className="h-5 w-5 rotate-180" /> Départ
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 space-y-4">
 
         <InputForm
           label="Heure de départ"
@@ -228,11 +194,21 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
           register={register}
           errors={errors}
         />
-      </div>
+          </AccordionContent>
+        </motion.div>
+      </AccordionItem>
 
-      {/* Hébergement */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Hébergement</h2>
+      <AccordionItem value="accommodation" className="border-none">
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 rounded-lg shadow-sm border-l-4 border-amber-400 overflow-hidden"
+        >
+          <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-amber-50/50 transition-all">
+            <span className="text-xl font-semibold text-amber-500 flex items-center gap-2">
+              <Home className="h-5 w-5" /> Hébergement
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 space-y-4">
 
         <div className="grid grid-cols-2 gap-4">
           <InputForm
@@ -293,12 +269,22 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
           register={register}
           errors={errors}
         />
-      </div>
+          </AccordionContent>
+        </motion.div>
+      </AccordionItem>
 
-      {/* Recommandations */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Recommandations</h2>
-        <p className="text-sm text-muted-foreground">Ajoutez des recommandations pour vos invités (restaurants, activités, bars, etc.)</p>
+      <AccordionItem value="recommendations" className="border-none">
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 rounded-lg shadow-sm border-l-4 border-teal-400 overflow-hidden"
+        >
+          <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-teal-50/50 transition-all">
+            <span className="text-xl font-semibold text-teal-600 flex items-center gap-2">
+              <MapPin className="h-5 w-5" /> Recommandations
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 space-y-4">
+            <p className="text-sm text-teal-700/70">Ajoutez des recommandations pour vos invités (restaurants, activités, bars, etc.)</p>
 
         <div className="space-y-4">
           {fields.map((field, index) => (
@@ -312,27 +298,36 @@ export function BookEditForm({ initialData = sampleBookData, onSubmit }: BookEdi
             />
           ))}
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="button"
             onClick={() => append({ name: '', type: '' as any, address: '', description: '' })}
-            className="flex items-center justify-center w-full py-2 px-4 border border-dashed rounded-md hover:bg-muted/20 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-full py-3 px-4 border border-dashed rounded-md bg-gradient-to-r from-teal-400 to-teal-300 text-white hover:from-teal-500 hover:to-teal-400 transition-all shadow-sm cursor-pointer"
           >
             <PlusCircle size={18} className="mr-2" />
             Ajouter une recommandation
-          </button>
+          </motion.button>
         </div>
-      </div>
+          </AccordionContent>
+        </motion.div>
+      </AccordionItem>
+      </Accordion>
 
-      {/* Bouton de soumission */}
-      <div className="flex justify-end">
-        <button
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-end mt-8"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           type="submit"
           disabled={isSaving}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+          className="px-6 py-3 bg-gradient-to-r from-[#f04c23] to-pink-500 text-white rounded-md hover:from-[#f04c23] hover:to-pink-400 transition-all shadow-md disabled:opacity-50 font-medium"
         >
-          {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
-        </button>
-      </div>
-    </form>
+          {isSaving ? 'Création en cours...' : 'Créer mon livret'}
+        </motion.button>
+      </motion.div>
+    </motion.form>
   );
 }
