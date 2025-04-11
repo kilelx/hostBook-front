@@ -6,6 +6,7 @@ import { BookData } from '@/types/BookData';
 import { motion } from 'framer-motion';
 import { Palmtree, Book, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {PasswordDisplay} from "../../../components/PasswordDisplay";
 
 function EditFormBook() {
   const router = useRouter();
@@ -97,7 +98,14 @@ function EditFormBook() {
               </div>
             </motion.div>
           ) : (
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} className="space-y-8">
+              {/* Affichage du mot de passe */}
+              {bookData?.accessPassword && bookData?.id && (
+                <motion.div variants={itemVariants}>
+                  <PasswordDisplay password={bookData.accessPassword} bookId={bookData.id} />
+                </motion.div>
+              )}
+
               <BookEditForm
                 initialData={bookData || undefined}
                 onSubmit={(data) => {
